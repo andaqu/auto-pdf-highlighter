@@ -13,7 +13,7 @@ Using the  GPT4o-mini model and the new Structured JSON output types, I did exac
 |--------|-------|
 | ![Before](images/before.png) | ![After](images/after.png) |
 
-It's certainly far from perfect, and the code is quite messy to say the least, but it seems to work decently well. More examples in the `examples` folder.
+It's certainly far from perfect: there's a few assumptions that I have made + the code is quite messy to say the least, but it seems to work decently well from the ones I have tested. More examples in the `examples` folder.
 
 (Working with PDFs is a nightmare, and I'll probably never do it again.)
 
