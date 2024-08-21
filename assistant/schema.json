@@ -1,0 +1,30 @@
+{
+    "name": "<schema-name>",
+    "strict": true,
+    "schema": {
+      "type": "object",
+      "properties": {
+        "highlights": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "additionalProperties": false
+          }
+        },
+        "summary": {
+          "type": "string",
+          "additionalProperties": false
+        },
+        "stop": {
+          "type": "boolean",
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "highlights",
+        "summary",
+        "stop"
+      ]
+    }
+  }
