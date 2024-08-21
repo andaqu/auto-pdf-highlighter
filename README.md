@@ -2,9 +2,9 @@
 
 Having just started my PhD, I've been thinking about the ways I could make my life a bit easier when going through papers. I figured it would be great if I could use an LLM to highlight and summarise the most salient parts for me.
 
-<div style="text-align: center;">
-    <img src="images/robot.png" alt="robot" width="50%">
-</div>
+<p align="center">
+  <img src="images/robot.png" alt="robot" width="30%">
+</p>
 
 
 Using the  GPT4o-mini model and the new Structured JSON output types, I did exactly that. It highlights and adds a summary as a comment on the top left corner of every page. Here's an example.
