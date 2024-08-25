@@ -42,7 +42,7 @@ pip install auto-py-to-exe openai pymupdf watchdog python-dotenv
 4. Inside your main folder, create two subfolders: `raw` and `highlighted`
 
 5. Usage:
-   - Place PDF papers you want to process in the `raw` folder
    - Run the `service.exe` file
+   - Place PDF papers you want to process in the `raw` folder
    - Processed and highlighted papers will appear in the `highlighted` folder
    - Files will be renamed as `{year}_{author}_{keyword}.pdf`
