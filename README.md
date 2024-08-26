@@ -22,14 +22,16 @@ It's certainly far from perfect: there's a few assumptions that I have made + th
 0. Create an OpenAI account, generate an API key, and create an assistant with the prompt and schema found within the `assistant` folder.
 
 1. Install the required dependencies `pip install -r requirements.txt`
+
+2. Create a folder called `papers/` and within it, create three subfolders: `raw`,  `highlighted`, and `summaries`.
    
-2. Create a `.env` file in the same directory as the executable with the following content. 
+3. Create a `.env` file in the same directory as the executable with the following content. 
    ```
    OPENAI_API_KEY=your_openai_api_key
    OPENAI_ASST_ID=your_openai_assistant_id
    MAIN_PATH=project_directory
    ```
-2. Usage:
+4. Usage:
    - Run `python service.py`
    - Place PDF papers you want to process in the `raw` folder
    - If the `highlighted` folder gets renamed to `highlighted_processing`, the script is working. Check the generated `service.log` file for more details.
@@ -39,7 +41,7 @@ It's certainly far from perfect: there's a few assumptions that I have made + th
 
 If you prefer to have the script run automatically upon system startup, you can convert it to an executable.
 
-1. Convert `service.py` to an executable:
+5. Convert `service.py` to an executable:
    - To convert to an executable:
      - `pip install auto-py-to-exe`
      - Run `auto-py-to-exe` in your terminal within the project directory
@@ -47,7 +49,7 @@ If you prefer to have the script run automatically upon system startup, you can 
      - Choose `service.py` as the script location
      - Click 'Convert .py to .exe'
 
-2. Task Scheduling:
+6. Task Scheduling:
    - To schedule the task to run automatically on system startup:
      - Open Task Scheduler
      - Create a new task
