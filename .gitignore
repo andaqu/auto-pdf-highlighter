@@ -3,4 +3,6 @@
 *.csv
 __pycache__/
 output/
-papers/
+papers/highlighted/*
+papers/raw/*
+papers/summaries/*
