@@ -40,8 +40,10 @@ pip install openai pymupdf watchdog python-dotenv
    - Run `python service.py`
    - Processed and highlighted papers will appear in the `highlighted` folder and summaries will appear in the `summaries` folder
    - Files will be renamed as `{year}_{author}_{keyword}.pdf`
+  
+(Optional steps below)
 
-5. (Optional) Convert `service.py` to an executable:
+5. Convert `service.py` to an executable:
    - This step is useful if you want to schedule the script to run automatically upon system startup.
    - If you prefer to run it as a Python script, you can skip this step.
    - To convert to an executable:
