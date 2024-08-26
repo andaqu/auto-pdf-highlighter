@@ -2,3 +2,5 @@
 *.log
 *.csv
 __pycache__/
+output/
+papers/

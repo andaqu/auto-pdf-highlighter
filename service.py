@@ -16,7 +16,7 @@ import traceback
 # Load environment variables
 load_dotenv()
 
-MAIN_PATH = os.getenv("MAIN_PATH")
+MAIN_PATH = os.getenv("MAIN_PATH") + "\papers"
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 OPENAI_ASST_ID = os.getenv("OPENAI_ASST_ID")
 
@@ -44,9 +44,10 @@ class PDFHandler(FileSystemEventHandler):
         self.papers_folder = os.path.join(main_folder, "raw")
         self.highlighted_folder = os.path.join(main_folder, "highlighted")
         self.processing_folder = os.path.join(main_folder, "highlighted_processing")
+        self.summaries_folder = os.path.join(main_folder, "summaries")
 
         # Ensure folders exist
-        for folder in [self.papers_folder, self.highlighted_folder]:
+        for folder in [self.papers_folder, self.highlighted_folder, self.summaries_folder]:
             if not os.path.exists(folder):
                 os.makedirs(folder)
                 logging.info(f"Created folder: {folder}")
@@ -231,6 +232,16 @@ class PDFHandler(FileSystemEventHandler):
                     thread_id
                 ])
             logging.info(f"Saved data to CSV: {csv_path}")
+
+            # Save summaries to markdown file
+            markdown_content = ""
+            for page_num, summary in all_summaries.items():
+                markdown_content += f"## Page {page_num}\n\n{summary}\n\n"
+
+            markdown_path = os.path.join(self.summaries_folder, f"{new_title}.md")
+            with open(markdown_path, 'w', encoding='utf-8') as md_file:
+                md_file.write(markdown_content)
+            logging.info(f"Saved summaries to markdown file: {markdown_path}")
 
         except Exception as e:
             logging.error(f"Error processing PDF {file_path}: {str(e)}")
