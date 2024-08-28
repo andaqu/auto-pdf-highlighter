@@ -39,7 +39,7 @@ It's certainly far from perfect: there's a few assumptions that I have made + th
   
 (Optional steps below)
 
-If you prefer to have the script run automatically upon system startup, you can convert it to an executable.
+If you prefer to have the script run automatically upon system startup, you can convert it to an executable. The following guide is for Windows users.
 
 5. Convert `service.py` to an executable:
    - To convert to an executable:
@@ -56,3 +56,5 @@ If you prefer to have the script run automatically upon system startup, you can 
      - Configure the task to start at system startup
      - Set the action to start the program (your executable)
      - Ensure the "Start in" field is set to the project folder
+    
+Note: You may need to disable "Show frequently used folders in Quick access" to have this task run without errors. [See here.](https://stackoverflow.com/questions/24857779/why-os-rename-sometimes-returns-error-access-is-denied-python)
