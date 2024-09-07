@@ -1,17 +1,17 @@
-import os
-import sys
-import time
-import re
-import json
-import pymupdf
-import csv
-from openai import OpenAI
-from watchdog.observers import Observer
+from utils import get_bounding_boxes, find_words_to_highlight_v2, GoogleDriveHelper
 from watchdog.events import FileSystemEventHandler
+from watchdog.observers import Observer
+from notion_client import Client
 from dotenv import load_dotenv
-from utils import get_bounding_boxes, find_words_to_highlight_v2
-import logging
+from openai import OpenAI
 import traceback
+import datetime
+import pymupdf
+import logging
+import json
+import time
+import csv
+import os
 
 # Load environment variables
 load_dotenv()
@@ -19,16 +19,18 @@ load_dotenv()
 MAIN_PATH = os.getenv("MAIN_PATH") + "\papers"
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 OPENAI_ASST_ID = os.getenv("OPENAI_ASST_ID")
+OPENAI_ASST2_ID = os.getenv("OPENAI_ASST2_ID")
+GOOGLE_DRIVE_FOLDER_ID = os.getenv("GOOGLE_DRIVE_FOLDER_ID")
+NOTION_API_KEY = os.getenv("NOTION_API_KEY")
+NOTION_DATABASE_ID = os.getenv("NOTION_DATABASE_ID")
 
 # Set up logging
 log_file_path = os.path.join(MAIN_PATH, "service.log")
 logging.basicConfig(filename=log_file_path, level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-
 if not OPENAI_API_KEY or not OPENAI_ASST_ID:
     logging.error("OpenAI API key or Assistant ID not found in .env file")
     raise ValueError("Missing OpenAI credentials")
-
 
 # Initialize OpenAI client
 try:
@@ -37,6 +39,13 @@ try:
 except Exception as e:
     logging.error(f"Error initializing OpenAI client: {e}")
     raise
+
+# Initialize Google Drive helper
+google_drive_helper = GoogleDriveHelper()
+google_drive_helper.authenticate_google_drive()
+
+# Initialize Notion client
+notion = Client(auth=NOTION_API_KEY)
 
 class PDFHandler(FileSystemEventHandler):
     def __init__(self, main_folder):
@@ -200,9 +209,23 @@ class PDFHandler(FileSystemEventHandler):
                     logging.info("Stopping processing as requested by OpenAI response")
                     break
 
-            output_path = os.path.join(self.processing_folder, f"{new_title}.pdf")
-            doc.save(output_path)
-            logging.info(f"Saved processed PDF to: {output_path}")
+            file_url = None
+
+            try:
+                file_id = google_drive_helper.upload_file_to_drive(doc, new_title, GOOGLE_DRIVE_FOLDER_ID)
+
+                # Make the file shareable and get the shareable link
+                file_url = google_drive_helper.make_file_shareable(file_id)
+                
+                logging.info(f"File uploaded to Google Drive: {file_url}")
+
+            except Exception as e:
+                logging.error(f"Error saving to Google Drive: {e}")
+
+            try:
+                self.summarise_to_notion(thread_id, new_title, file_url)
+            except Exception as e:
+                logging.error(f"Error saving to Notion: {e}")
 
             # Save to CSV
             csv_path = os.path.join(self.main_folder, 'saves.csv')
@@ -252,6 +275,49 @@ class PDFHandler(FileSystemEventHandler):
             if os.path.exists(self.processing_folder):
                 os.rename(self.processing_folder, self.highlighted_folder)
                 logging.info(f"Renamed {self.processing_folder} back to {self.highlighted_folder}")
+
+    def summarise_to_notion(self, thread_id, file_name, file_url):
+
+        props = {}
+
+        message = client.beta.threads.messages.create(
+            thread_id=thread_id,
+            role="user",
+            content=" "
+        )
+
+        run = client.beta.threads.runs.create_and_poll(
+            thread_id=thread_id,
+            assistant_id=OPENAI_ASST2_ID
+        )
+
+        if run.status == 'completed': 
+            messages = client.beta.threads.messages.list(
+                thread_id=thread_id
+            )
+                
+            data = json.loads(messages.data[0].content[0].text.value)
+
+            props["Title"] = {"rich_text": [{"text": {"content": data["title"]}}]}
+            props["Goal"] = {"rich_text": [{"text": {"content": data["goal"]}}]}
+            props["Method"] = {"rich_text": [{"text": {"content": data["method"]}}]}
+            props["Data"] = {"rich_text": [{"text": {"content": data["data"]}}]}
+            props["Results"] = {"rich_text": [{"text": {"content": data["results"]}}]}
+            props["Pros"] = {"rich_text": [{"text": {"content": data["pros"]}}]}
+            props["Cons"] = {"rich_text": [{"text": {"content": data["cons"]}}]}
+            props["Implications"] = {"rich_text": [{"text": {"content": data["implications"]}}]}
+            props["Limitations"] = {"rich_text": [{"text": {"content": data["limitations"]}}]}
+            props["Date"] = {"date": {"start": datetime.datetime.now().isoformat()}}
+
+        if file_url:
+            props["Name"] = {"title": [{"text": {"content": file_name, "link": {"url": file_url}}}]}
+        else:
+            props["Name"] = {"title": [{"text": {"content": file_name}}]}
+
+        notion.pages.create(
+            parent={"database_id": NOTION_DATABASE_ID},
+            properties=props
+        )
 
 def main():
     logging.debug("Entering main function")

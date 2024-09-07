@@ -1,6 +1,58 @@
+from google_auth_oauthlib.flow import InstalledAppFlow
+from google.auth.transport.requests import Request
+from googleapiclient.http import MediaIoBaseUpload
+from googleapiclient.discovery import build
 from collections import defaultdict
 from thefuzz import fuzz
+import pickle
 import math
+import io
+import os
+
+class GoogleDriveHelper:
+    SCOPES = ['https://www.googleapis.com/auth/drive.file']
+
+    def __init__(self):
+        self.service = self.authenticate_google_drive()
+
+    def authenticate_google_drive(self):
+        creds = None
+        if os.path.exists('gdrive/token.pickle'):
+            with open('gdrive/token.pickle', 'rb') as token:
+                creds = pickle.load(token)
+        if not creds or not creds.valid:
+            if creds and creds.expired and creds.refresh_token:
+                creds.refresh(Request())
+            else:
+                flow = InstalledAppFlow.from_client_secrets_file(
+                    'gdrive/creds.json', self.SCOPES)
+                creds = flow.run_local_server(port=0)
+            with open('gdrive/token.pickle', 'wb') as token:
+                pickle.dump(creds, token)
+        
+        return build('drive', 'v3', credentials=creds)
+
+    def upload_file_to_drive(self, pdf_document, file_name, folder_id):
+        file_metadata = {
+            'name': file_name + ".pdf",
+            'parents': [folder_id]
+        }
+        
+        pdf_bytes = io.BytesIO(pdf_document.write())
+        media = MediaIoBaseUpload(pdf_bytes, mimetype='application/pdf', resumable=True)
+        
+        file = self.service.files().create(body=file_metadata, media_body=media, fields='id').execute()
+        return file.get('id')
+
+    def make_file_shareable(self, file_id):
+        permission = {
+            'type': 'anyone',
+            'role': 'reader'
+        }
+        self.service.permissions().create(fileId=file_id, body=permission).execute()
+        
+        file = self.service.files().get(fileId=file_id, fields='webViewLink').execute()
+        return file.get('webViewLink')
 
 def euclidean_distance(box1, box2):
     x1, y1 = (box1[0] + box1[2]) / 2, (box1[1] + box1[3]) / 2
